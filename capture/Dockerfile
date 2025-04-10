@@ -32,21 +32,24 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Accept UID and GID from build args
+ARG UID=1000
+ARG GID=1000
+
 # Create user and grant sudo access
-RUN useradd -ms /bin/bash user && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y sudo --option=Dpkg::Options::="--force-confdef" --option=Dpkg::Options::="--force-confold" && \
-    usermod -aG sudo user && \
-    echo "user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/user && \
-    chmod 0440 /etc/sudoers.d/user
-USER user
-RUN mkdir /home/user/app
-WORKDIR /home/user/app
+    usermod -aG sudo ubuntu && \
+    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu && \
+    chmod 0440 /etc/sudoers.d/ubuntu
+USER ubuntu
+RUN mkdir /home/ubuntu/app
+WORKDIR /home/ubuntu/app
 
 # Create and activate virtual environment
-RUN python3 -m venv /home/user/venv
-ENV PATH="/home/user/venv/bin:${PATH}"
-ENV VIRTUAL_ENV="/home/user/venv"
+RUN python3 -m venv /home/ubuntu/venv
+ENV PATH="/home/ubuntu/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/home/ubuntu/venv"
 
 # Install Python packages globally
 RUN python3 -m pip install --upgrade pip
@@ -65,17 +68,23 @@ RUN pip3 install --no-cache-dir \
     tqdm \
     wandb
 
-# Copy src directory into the container
-COPY --chown=user:user src/ /home/user/app/src/
-COPY --chown=user:user Arena/ /home/user/app/Arena/
+# Install the Arena software for Lucid cameras
+COPY --chown=ubuntu:ubuntu Arena/ /home/ubuntu/app/Arena/
 
 # Switch back to root for a sudo command
 USER root
-RUN cd /home/user/app/Arena/ArenaSDK_Linux_x64/ && \
+RUN cd /home/ubuntu/app/Arena/ArenaSDK_Linux_x64/ && \
     sh Arena_SDK_Linux_x64.conf
-USER user
-RUN cd /home/user/app/Arena/python/ && \
+USER ubuntu
+RUN cd /home/ubuntu/app/Arena/python/ && \
     pip install arena_api-2.7.1-py3-none-any.whl
+
+# Copy src directory into the container
+COPY --chown=user:ubuntu src/ /home/ubuntu/app/src/
+RUN mkdir -p /tmp/images
+
+# Set up the entrypoint so image capture happens right away
+ENTRYPOINT ["python3", "/home/ubuntu/app/src/cameras/arena.py"]
 
 # # Install the source code as a package
 # RUN pip3 install --user -e .

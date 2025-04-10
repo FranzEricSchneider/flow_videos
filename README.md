@@ -1,19 +1,26 @@
 # flow_videos
 Analysis of videos of flow
 
-## How to build Docker
+
+## Data capture
+
+```
+cd capture/
+```
+
+### How to build Docker
 
 ```
 docker build -t flow .
 ```
 
-## How to run Docker
+### How to run Docker
 
 ```
-docker run -it --rm --env="DISPLAY" --env="QT_X11_NO_MITSHM=1" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" --volume="${XAUTHORITY}:/root/.Xauthority" --entrypoint /bin/bash flow
+docker run -it --rm --net host --env="DISPLAY" --env="QT_X11_NO_MITSHM=1" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" --volume="${XAUTHORITY}:/root/.Xauthority" --entrypoint /bin/bash flow
 ```
 
-## Installing Arena
+### Installing Arena
 
 On your computer, follow these steps
 * Follow the Arena SDK for Linux steps here: https://support.thinklucid.com/arena-sdk-documentation/
@@ -30,6 +37,8 @@ On your computer, follow these steps
     * `tar -xzvf ArenaSDK...tar.gz; rm ArenaSDK...tar.gz`
         * Instructions are found in `Arena/README`
         * You can confirm with `g++ -v` that the version >5, and `make -v` should be installed
-* Download the Area Python Package: https://thinklucid.com/downloads-hub/
+* Download and unpack the Area Python Package: https://thinklucid.com/downloads-hub/
     * `cp ~/Downloads/arena_api-2.7.1-py3-none-any.zip /path/to/flow_videos/Arena/python/`
     * `unzip arena_api...zip; rm arena_api...zip`
+
+TODO: Create a data collection directory and Dockerfile

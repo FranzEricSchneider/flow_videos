@@ -415,4 +415,6 @@ if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)-16s %(message)s")
     log = logging.getLogger()
     log.setLevel(logging.INFO)
-    video_thread(imdir=Path("/tmp/images/"), config=config, log=log, N=args.number_frames)
+    video_thread(
+        imdir=Path("/tmp/images/"), config=config, log=log, N=args.number_frames
+    )

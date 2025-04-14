@@ -43,7 +43,7 @@ def view_hist(data, xlabel):
                 alpha=0.2,
                 edgecolor="black",
                 color=colors[i],
-                label=label if vector is vectors[0] else None
+                label=label if vector is vectors[0] else None,
             )
 
     pyplot.legend(title="Group")
@@ -65,7 +65,9 @@ def view_exponential(data, x, y, params, xlabel):
     pyplot.plot(fit_x, fit_y, "g", label="fit")
 
     a, b, c = params
-    pyplot.title("Exponential fit: $" + f"{a:.1f}" + "e^{" + f"-{b:.1f}" + "x}$ + " + f"{c:.1f}")
+    pyplot.title(
+        "Exponential fit: $" + f"{a:.1f}" + "e^{" + f"-{b:.1f}" + "x}$ + " + f"{c:.1f}"
+    )
     pyplot.legend()
     pyplot.xlabel(xlabel)
     pyplot.ylabel("Average Brightness")
@@ -133,10 +135,7 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-X",
-        "--x-label",
-        help="Plot label for the X axis.",
-        default="X Axis"
+        "-X", "--x-label", help="Plot label for the X axis.", default="X Axis"
     )
     args = parser.parse_args()
     for imdir in args.impaths:

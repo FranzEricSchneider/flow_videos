@@ -69,12 +69,14 @@ def plot_linearity(data):
     """How well controlled was the red/blue value by the settings?"""
 
     keys = sorted(data.keys())
+
     def getcolor(i):
         """Get colors, where the measured values are normalized by green"""
         return (
             [data[k]["RGB"][i] for k in keys],
             [data[k]["color"][i] / data[k]["color"][1] for k in keys],
         )
+
     red = getcolor(0)
     blue = getcolor(2)
 

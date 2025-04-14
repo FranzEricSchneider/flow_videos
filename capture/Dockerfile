@@ -85,6 +85,7 @@ RUN mkdir -p /tmp/images
 
 # Set up the entrypoint so image capture happens right away
 ENTRYPOINT ["python3", "/home/ubuntu/app/src/cameras/arena.py"]
+CMD []
 
 # # Install the source code as a package
 # RUN pip3 install --user -e .

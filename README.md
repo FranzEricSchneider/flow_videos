@@ -18,7 +18,15 @@ docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t flow .
 
 ```
 mkdir /tmp/images/
-docker run -it --rm --net host -u $(id -u):$(id -g) --volume /tmp/images/:/tmp/images/ flow
+docker run -it --rm --net host -u $(id -u):$(id -g) --volume /tmp/images/:/tmp/images/ flow -e <exposure>
+```
+
+Here is an example usecase that can be used for repeated data gathering
+
+```
+export EXP=6000
+export DIR=e_"$EXP"/l_95_3/
+mkdir -p ~/Pictures/flowdata/$DIR; docker run -it --rm --net host -u $(id -u):$(id -g) --volume ~/Pictures/flowdata/$DIR:/tmp/images/ flow --exposure $EXP --number-frames 100
 ```
 
 ### Installing Arena

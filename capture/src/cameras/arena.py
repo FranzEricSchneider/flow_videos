@@ -2,6 +2,7 @@
 Connect to the Lucid cameras and manage the images they take.
 """
 
+import argparse
 import cv2
 import json
 import logging
@@ -359,6 +360,25 @@ def video_thread(imdir, log, config, wipe=False, N=150):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "-e",
+        "--exposure",
+        help="Exposure time in us (microseconds).",
+        type=float,
+        default=1000.0,
+    )
+    parser.add_argument(
+        "-N",
+        "--number-frames",
+        help="Number of images to take.",
+        type=int,
+        default=250,
+    )
+    args = parser.parse_args()
+
     config = {
         "camtype": "color",
         "format": "BGR",
@@ -379,7 +399,7 @@ if __name__ == "__main__":
             # NOTE: MUST be synced with the F-stop
             # "ExposureAutoLowerLimit": 300.0,
             "TargetBrightness": 20,
-            "ExposureTime": 7000.0,
+            "ExposureTime": args.exposure,
             "Gain": 0.0,
             "Gamma": 1.0,
         },
@@ -395,4 +415,4 @@ if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)-16s %(message)s")
     log = logging.getLogger()
     log.setLevel(logging.INFO)
-    video_thread(imdir=Path("/tmp/images/"), config=config, log=log, N=25)
+    video_thread(imdir=Path("/tmp/images/"), config=config, log=log, N=args.number_frames)

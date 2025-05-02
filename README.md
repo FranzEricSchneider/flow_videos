@@ -49,3 +49,33 @@ On your computer, follow these steps
 * Download and unpack the Area Python Package: https://thinklucid.com/downloads-hub/
     * `cp ~/Downloads/arena_api-2.7.1-py3-none-any.zip /path/to/flow_videos/Arena/python/`
     * `unzip arena_api...zip; rm arena_api...zip`
+
+
+## Data analysis
+
+### Data preparation
+
+The first step is to take the video data (series of images) and turn them into clipped and processed windows, with stats calculated for each window. We want to calculate the stats once, then we can try to fit various stats against our state of interest in the training step. Example run of the preparation tool:
+
+```
+python3 flow_videos/assess/prepare/snip.py --data-dir capture/ --start-stop range.json --lookup-dict state.json --windows windows.json --save-dir /tmp/ --downsample 20
+```
+
+The output will take the form
+```
+/tmp/
+    data_<timestamp>/
+        train/
+            clipped image windows of the desired resolution
+        test/
+            clipped image windows of the desired resolution
+        metadata.json
+            {
+                "kwargs": kwargs,
+                "name": amalgamate trial name,
+                {
+                    path/to/image: {stats, origin image, origin window}
+                    ...
+                }
+            }
+```

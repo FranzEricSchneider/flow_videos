@@ -429,3 +429,6 @@ if __name__ == "__main__":
 
     # And call
     main(metadata=metadata, **kwargs)
+
+
+# TODO: Make a metadata ingester

@@ -79,3 +79,36 @@ The output will take the form
                 }
             }
 ```
+
+### Training
+
+TODO: We should be able to pass hyperparameters into the regressors
+
+The next step is to train various basic regressors against the image stats calculated in data preparation. The models will be saved and can be assessed next. Example run of the training tool:
+
+```
+python3 train.py --data-dir path/to/data_<timestamp>/ --save-dir /tmp/ --stat <chosen stat> --state-key <state key> --model <model>
+```
+
+The output will take the form
+```
+/tmp/
+    data_<input timestamp>_<created timestamp>/
+        model.joblib
+        metadata.json
+            {
+                "kwargs": kwargs,
+                "name": amalgamate trial name,
+                "R2", "RMSE", "MAE": training stats for model
+            }
+```
+
+I need a series of assessors
+    This should export results in a traceable form (json with arguments, results). The saved metadata should be ingestable into the tool
+
+    The desired output is
+        results/dir/
+            data_<timestamp>  ← From the original data
+                metadata.json
+                images/
+                    <graphs>

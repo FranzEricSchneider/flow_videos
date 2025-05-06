@@ -8,8 +8,30 @@ from pathlib import Path
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import time
 
-from allocate import ALLOCATE, get_state, train_test
-from model import get_model, MODELS
+from assess.train.allocate import ALLOCATE, get_state, train_test
+from assess.train.model import get_model, MODELS
+
+
+def get_vector(imdict: dict, stat: str, imlist: list) -> numpy.ndarray:
+    """Build the vector set X of shape (N, M)."""
+    return numpy.vstack([imdict[im]["stats"][stat] for im in imlist])
+
+
+def get_labels(splitter, metadata: dict, key: str, imlist: list) -> numpy.ndarray:
+    """Build the label set y of shape (N,)."""
+    return numpy.hstack(
+        [
+            splitter(
+                **get_state(
+                    metadata["images"][im]["origin"],
+                    metadata["kwargs"]["lookup_dict"],
+                    metadata["kwargs"]["start_stop"],
+                    key,
+                )
+            )
+            for im in imlist
+        ]
+    )
 
 
 def main(
@@ -38,37 +60,35 @@ def main(
     splitter = ALLOCATE[split_key]
 
     # Load train vs. test keys in the dictionary
-    train, _ = train_test(previous["images"])
+    train, test = train_test(previous["images"])
 
     # Build the vector set X of shape (N, M)
-    X = numpy.vstack([previous["images"][im]["stats"][stat] for im in train])
-    metadata["X"] = X.tolist()
+    X = get_vector(previous["images"], stat, train)
+    metadata["X_train"] = X.tolist()
 
     # Also build the label set y of shape (N,)
-    y = numpy.hstack(
-        [
-            splitter(
-                **get_state(
-                    previous["images"][im]["origin"],
-                    previous["kwargs"]["lookup_dict"],
-                    previous["kwargs"]["start_stop"],
-                    state_key,
-                )
-            )
-            for im in train
-        ]
-    )
-    metadata["y"] = y.tolist()
+    y = get_labels(splitter, previous, state_key, train)
+    metadata["y_train"] = y.tolist()
 
     # Train and save the model
     regressor = get_model(key=model_key, scale=scale)
     regressor.fit(X, y)
     joblib.dump(regressor, out_dir / "model.joblib")
+    metadata["y_pred_train"] = regressor.predict(X).tolist()
 
-    # Save a few training stats
-    metadata["R2"] = regressor.score(X, y)
-    metadata["RMSE"] = numpy.sqrt(mean_squared_error(y, regressor.predict(X)))
-    metadata["MAE"] = mean_absolute_error(y, regressor.predict(X))
+    # Record the test set
+    metadata["X_test"] = get_vector(previous["images"], stat, test).tolist()
+    metadata["y_test"] = get_labels(splitter, previous, state_key, test).tolist()
+    metadata["y_pred_test"] = regressor.predict(metadata["X_test"]).tolist()
+
+    # Save a few stats
+    for key in ["train", "test"]:
+        kX = metadata[f"X_{key}"]
+        ky = metadata[f"y_{key}"]
+        kyp = metadata[f"y_pred_{key}"]
+        metadata[f"R2_{key}"] = regressor.score(kX, ky)
+        metadata[f"RMSE_{key}"] = numpy.sqrt(mean_squared_error(ky, kyp))
+        metadata[f"MAE_{key}"] = mean_absolute_error(ky, kyp)
 
     # Finally, save the metadata
     json.dump(
@@ -147,10 +167,10 @@ if __name__ == "__main__":
         "data_dir": str(args.data_dir),
         "split_key": args.split,
         "save_dir": str(args.save_dir),
-        "stat": str(args.stat),
-        "state_key": str(args.state_key),
-        "model_key": str(args.model),
-        "scale": str(args.scale),
+        "stat": args.stat,
+        "state_key": args.state_key,
+        "model_key": args.model,
+        "scale": args.scale,
     }
     metadata = {"kwargs": kwargs}
 

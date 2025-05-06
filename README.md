@@ -58,7 +58,7 @@ On your computer, follow these steps
 The first step is to take the video data (series of images) and turn them into clipped and processed windows, with stats calculated for each window. We want to calculate the stats once, then we can try to fit various stats against our state of interest in the training step. Example run of the preparation tool:
 
 ```
-python3 flow_videos/assess/prepare/snip.py --data-dir capture/ --start-stop range.json --lookup-dict state.json --windows windows.json --save-dir /tmp/ --downsample 20
+~/flow_videos$ python3 -m  assess.prepare.snip --data-dir /path/to/capture/ --start-stop range.json --lookup-dict state.json --windows windows.json --save-dir /tmp/ --downsample 20
 ```
 
 The output will take the form
@@ -87,7 +87,21 @@ TODO: We should be able to pass hyperparameters into the regressors
 The next step is to train various basic regressors against the image stats calculated in data preparation. The models will be saved and can be assessed next. Example run of the training tool:
 
 ```
-python3 train.py --data-dir path/to/data_<timestamp>/ --save-dir /tmp/ --stat <chosen stat> --state-key <state key> --model <model>
+~/flow_videos$ python3 -m assess.train.train --data-dir path/to/data_<timestamp>/ --save-dir /tmp/ --stat <chosen stat> --state-key <state key> --model <model>
+```
+
+An example of a loop over various settings:
+
+```
+~/flow_videos$ for directory in path/to/data_*/; do
+    for stat in gray-average hsv-average rgb-average; do
+        for model in SVR ridge forest; do
+            for flag in "--scale" ""; do
+                python3 -m assess.train.train --save-dir /tmp/ --state-key <state key> --data-dir "$directory" --stat "$stat" --model "$model" $flag
+            done
+        done
+    done
+done
 ```
 
 The output will take the form
@@ -99,16 +113,13 @@ The output will take the form
             {
                 "kwargs": kwargs,
                 "name": amalgamate trial name,
-                "R2", "RMSE", "MAE": training stats for model
+                "R2_*", "RMSE_*", "MAE_*": training stats for model
+                "X_*", "y_*", "y_pred_*": raw data and labels for model
             }
 ```
 
-I need a series of assessors
-    This should export results in a traceable form (json with arguments, results). The saved metadata should be ingestable into the tool
+### Assessment
 
-    The desired output is
-        results/dir/
-            data_<timestamp>  ← From the original data
-                metadata.json
-                images/
-                    <graphs>
+```
+~/flow_videos$ python3 -m assess.assess.vis --data-dir /path/to/train/data/ --save-dir /tmp/ --stats <stat> --plot-ranking --plot-vs-variable meta.kwargs.stat
+```

@@ -78,7 +78,7 @@ def main(
     y_pred_train = regressor.predict(X)
     X_test = get_vector(previous["images"], stat, test)
     y_test = get_labels(splitter, previous, state_key, test)
-    y_pred_test = regressor.predict(metadata["X_test"])
+    y_pred_test = regressor.predict(X_test)
     if not lite:
         metadata["X_train"] = X.tolist()
         metadata["y_train"] = y.tolist()
@@ -88,7 +88,10 @@ def main(
         metadata["y_pred_test"] = y_pred_test.tolist()
 
     # Save a few stats
-    for kX, ky, kyp in [(X, y, y_pred_train), (X_test, y_test, y_pred_test)]:
+    for kX, ky, kyp, key in [
+        (X, y, y_pred_train, "train"),
+        (X_test, y_test, y_pred_test, "test"),
+    ]:
         metadata[f"R2_{key}"] = regressor.score(kX, ky)
         metadata[f"RMSE_{key}"] = numpy.sqrt(mean_squared_error(ky, kyp))
         metadata[f"MAE_{key}"] = mean_absolute_error(ky, kyp)

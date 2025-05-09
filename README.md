@@ -121,5 +121,5 @@ The output will take the form
 ### Assessment
 
 ```
-~/flow_videos$ python3 -m assess.assess.vis --data-dir /path/to/train/data/ --save-dir /tmp/ --stats <stat> --plot-ranking --plot-vs-variable meta.kwargs.stat
+~/flow_videos$ python3 -m assess.assess.compare --data-dir /path/to/train/data/ --stats <stat> --plot-ranking --plot-vs-variable meta.kwargs.stat
 ```

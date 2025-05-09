@@ -1,4 +1,4 @@
-"""Collate and view results from training."""
+"""Collate and compare results across training runs."""
 
 import argparse
 from functools import reduce
@@ -98,12 +98,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data-dir",
         help="Path to folder with training folders inside.",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--save-dir",
-        help="Directory in which to save the output graphs.",
         type=Path,
         required=True,
     )

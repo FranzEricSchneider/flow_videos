@@ -412,8 +412,10 @@ if __name__ == "__main__":
     # Format this in a saveable fashion
     kwargs = {
         "data_dir": str(args.data_dir),
+        "data_name": args.data_dir.name,
         "start_stop": start_stop,
         "lookup_dict": lookup_dict,
+        "window_file": args.windows.stem,
         "windows": windows,
         "downsample": args.downsample,
         "train_frac": args.train_frac,

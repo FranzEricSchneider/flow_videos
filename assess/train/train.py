@@ -43,6 +43,7 @@ def main(
     state_key: str,
     model_key: str,
     scale: bool,
+    lite: bool,
 ):
 
     # Convert back to pathlib
@@ -64,28 +65,30 @@ def main(
 
     # Build the vector set X of shape (N, M)
     X = get_vector(previous["images"], stat, train)
-    metadata["X_train"] = X.tolist()
 
     # Also build the label set y of shape (N,)
     y = get_labels(splitter, previous, state_key, train)
-    metadata["y_train"] = y.tolist()
 
     # Train and save the model
     regressor = get_model(key=model_key, scale=scale)
     regressor.fit(X, y)
     joblib.dump(regressor, out_dir / "model.joblib")
-    metadata["y_pred_train"] = regressor.predict(X).tolist()
 
-    # Record the test set
-    metadata["X_test"] = get_vector(previous["images"], stat, test).tolist()
-    metadata["y_test"] = get_labels(splitter, previous, state_key, test).tolist()
-    metadata["y_pred_test"] = regressor.predict(metadata["X_test"]).tolist()
+    # Record the train and test set
+    y_pred_train = regressor.predict(X)
+    X_test = get_vector(previous["images"], stat, test)
+    y_test = get_labels(splitter, previous, state_key, test)
+    y_pred_test = regressor.predict(metadata["X_test"])
+    if not lite:
+        metadata["X_train"] = X.tolist()
+        metadata["y_train"] = y.tolist()
+        metadata["y_pred_train"] = y_pred_train.tolist()
+        metadata["X_test"] = X_test.tolist()
+        metadata["y_test"] = y_test.tolist()
+        metadata["y_pred_test"] = y_pred_test.tolist()
 
     # Save a few stats
-    for key in ["train", "test"]:
-        kX = metadata[f"X_{key}"]
-        ky = metadata[f"y_{key}"]
-        kyp = metadata[f"y_pred_{key}"]
+    for kX, ky, kyp in [(X, y, y_pred_train), (X_test, y_test, y_pred_test)]:
         metadata[f"R2_{key}"] = regressor.score(kX, ky)
         metadata[f"RMSE_{key}"] = numpy.sqrt(mean_squared_error(ky, kyp))
         metadata[f"MAE_{key}"] = mean_absolute_error(ky, kyp)
@@ -158,6 +161,11 @@ if __name__ == "__main__":
         help="Whether to preprocess rescale the input vectors (good practice).",
         action="store_true",
     )
+    parser.add_argument(
+        "--lite",
+        help="If this variable is given, don't store model or high-res results.",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     assert args.data_dir.is_dir()
@@ -171,6 +179,7 @@ if __name__ == "__main__":
         "state_key": args.state_key,
         "model_key": args.model,
         "scale": args.scale,
+        "lite": args.lite,
     }
     metadata = {"kwargs": kwargs}
 

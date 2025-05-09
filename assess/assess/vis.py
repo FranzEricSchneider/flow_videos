@@ -34,9 +34,9 @@ def plot_ranking(metadatas: list, origins: dict, stats: str, N: int = 30):
 
             x = [
                 f"{origins[metadatas[i]['kwargs']['data_dir']]['name']}\n{metadatas[i]['name']}"
-                for i in order[:N]
+                for i in order[:N] + order[-N:]
             ]
-            y = [metadatas[i][f"{stat}_{key}"] for i in order[:N]]
+            y = [metadatas[i][f"{stat}_{key}"] for i in order[:N] + order[-N:]]
 
             axis.bar(x, y)
             if stat == stats[-1]:
@@ -57,7 +57,7 @@ def plot_vs(metadatas: list, origins: dict, stats: str, variable: str):
 
         for stat in stats:
 
-            figure, axis = pyplot.subplots(1, 1, figsize=(8, 5))
+            figure, axis = pyplot.subplots(1, 1, figsize=(4.5, 2.5))
             figure.suptitle(f"{stat} for {key} set, sorted by {variable}")
             axis.set_ylabel(stat)
 
@@ -66,8 +66,9 @@ def plot_vs(metadatas: list, origins: dict, stats: str, variable: str):
 
             axis.scatter(x, y)
             axis.grid(True)
+            axis.tick_params(axis="x", labelrotation=90, labelsize=8)
 
-        figure.tight_layout()
+            figure.tight_layout()
 
     pyplot.show()
 
@@ -120,7 +121,15 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--plot-vs-variable",
-        help="TODO. See the details of lookup() for how this is parsed",
+        help="Scatter performance against a single variable. See the details"
+        " of lookup() for how specific variables are parsed from metadata.",
+    )
+    parser.add_argument(
+        "--exclude",
+        help="Space separate values of variable:value. Any runs where the"
+        " variable is equal to that value will be expcluded. See the details"
+        " of lookup() for how specific variables are parsed from metadata.",
+        nargs="+",
     )
     args = parser.parse_args()
 
@@ -135,17 +144,27 @@ if __name__ == "__main__":
         )
     ]
     origins = {}
-    for meta in metadatas:
+    for meta in tqdm(metadatas, desc="Matching origins"):
         key = meta["kwargs"]["data_dir"]
         if key not in origins:
             origins[key] = json.load((Path(key).joinpath("metadata.json").open("r")))
 
-    # TODO: Make an exclusionary key/value system, maybe split by ':' ?
-    #   Do this live, for faster loading
-    # TODO: Split out data from results in the training output for faster loading
+    # Keep only metadata that does not have excluded data
+    if args.exclude is None:
+        remaining = metadatas
+    else:
+        remaining = []
+        for meta in metadatas:
+            for exclude in args.exclude:
+                variable, value = exclude.split(":")
+                metavalue = lookup(meta, origins, variable)
+                if metavalue == type(metavalue)(value):
+                    break
+            else:
+                remaining.append(meta)
 
     if args.plot_ranking:
-        plot_ranking(metadatas, origins, args.stats)
+        plot_ranking(remaining, origins, args.stats)
 
     if args.plot_vs_variable is not None:
-        plot_vs(metadatas, origins, args.stats, args.plot_vs_variable)
+        plot_vs(remaining, origins, args.stats, args.plot_vs_variable)

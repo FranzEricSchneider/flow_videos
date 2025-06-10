@@ -87,7 +87,7 @@ TODO: We should be able to pass hyperparameters into the regressors
 The next step is to train various basic regressors against the image stats calculated in data preparation. The models will be saved and can be assessed next. Example run of the training tool:
 
 ```
-~/flow_videos$ python3 -m assess.train.train --data-dir path/to/data_<timestamp>/ --save-dir /tmp/ --stat <chosen stat> --state-key <state key> --model <model>
+~/flow_videos$ python3 -m assess.train_classic.train --data-dir path/to/data_<timestamp>/ --save-dir /tmp/ --stat <chosen stat> --state-key <state key> --model <model>
 ```
 
 An example of a loop over various settings:
@@ -97,7 +97,7 @@ An example of a loop over various settings:
     for stat in gray-average hsv-average rgb-average; do
         for model in SVR ridge forest; do
             for flag in "--scale" ""; do
-                python3 -m assess.train.train --save-dir /tmp/ --state-key <state key> --data-dir "$directory" --stat "$stat" --model "$model" $flag
+                python3 -m assess.train_classic.train --save-dir /tmp/ --state-key <state key> --data-dir "$directory" --stat "$stat" --model "$model" $flag
             done
         done
     done

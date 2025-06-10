@@ -13,7 +13,7 @@ from pathlib import Path
 from PIL import Image
 import shutil
 
-from assess.train.allocate import train_test
+from assess.train_classic.allocate import train_test
 
 
 def extract_state(meta_im, all_y, all_pred, vidfilter):

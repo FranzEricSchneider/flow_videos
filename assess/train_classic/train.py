@@ -8,8 +8,8 @@ from pathlib import Path
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import time
 
-from assess.train.allocate import ALLOCATE, get_state, train_test
-from assess.train.model import get_model, MODELS
+from assess.train_classic.allocate import ALLOCATE, get_state, train_test
+from assess.train_classic.model import get_model, MODELS
 
 
 def get_vector(imdict: dict, stat: str, imlist: list) -> numpy.ndarray:

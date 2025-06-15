@@ -23,6 +23,7 @@ Use four spaces instead of tabs.
 Avoid trailing whitespace.
 End files in a newline unless it's a filetype where that would cause issues.
 
+Do not use import aliasing, even for common uses like numpy as np or pyplot as plt. Just import the library
 Prefer list comprehensions over manual loops where appropriate.
 Use generators for large datasets to save memory.
 Avoid mutating global state or function arguments.

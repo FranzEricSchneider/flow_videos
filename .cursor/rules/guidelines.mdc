@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Use snake_case for variables and functions.
+Use PascalCase for class names.
+Use UPPER_CASE for constants.
+
+Write clear, descriptive function and variable names.
+Keep functions short and focused on a single task.
+Write a concise docstring for public functions and classes only when the code is somewhat complex and/or unclear from the variable names.
+
+Handle exceptions explicitly; avoid bare except blocks.
+Avoid using eval(), exec(), or shell=True in subprocess.
+Never hardcode credentials or secrets in source code.
+
+Follow PEP8 formatting; use black or similar autoformatter.
+Remove unused imports and variables.
+Group imports: standard library, third-party, local.
+Use double-quotes preferentially instead of single quotes.
+Use four spaces instead of tabs.
+Avoid trailing whitespace.
+End files in a newline unless it's a filetype where that would cause issues.
+
+Prefer list comprehensions over manual loops where appropriate.
+Use generators for large datasets to save memory.
+Avoid mutating global state or function arguments.
+
+Use type hints where possible for clarity and tooling.
+Add comments when logic isn't obvious, but avoid redundant comments.
+Keep comments concise and try to avoid comments on every line.
+Document assumptions and limitations in code or comments.
+
+Prefer pathlib over os.path for file operations.
+Use logging instead of print for runtime messages.
+Default to explicit and readable code over clever tricks.
+
+Use argparse with defaults printed for script flags.

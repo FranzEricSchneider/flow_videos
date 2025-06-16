@@ -302,6 +302,8 @@ if __name__ == "__main__":
 
     assert args.data_dir.is_dir()
     assert args.save_dir.is_dir()
+    previous_meta = data_dir.joinpath("metadata.json")
+    assert previous_meta.is_file()
 
     # Set device
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -322,9 +324,10 @@ if __name__ == "__main__":
     metadata = {"kwargs": kwargs}
 
     # Create run name
+    origin = json.load(previous_meta.open("r"))["name"]
     metadata["name"] = (
         f"split-{args.split}_model-{args.model}_bs-{args.batch_size}_"
-        f"epochs-{args.num_epochs}_lr-{args.learning_rate}"
+        f"epochs-{args.num_epochs}_lr-{args.learning_rate}_{origin}"
     )
 
     main(metadata=metadata, **kwargs)

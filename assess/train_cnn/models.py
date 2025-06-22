@@ -53,7 +53,7 @@ def get_backbone(name: str, pretrained: bool = True) -> tuple[nn.Module, int]:
         model = nn.Sequential(*list(model.children())[:-1])
     elif name == "mobilenet_v3_small":
         model = models.mobilenet_v3_small(weights=weights)
-        out_features = model.classifier[3].in_features
+        out_features = model.classifier[0].in_features
         model = nn.Sequential(*list(model.children())[:-1])
     elif name == "convnext_tiny":
         model = models.convnext_tiny(weights=weights)

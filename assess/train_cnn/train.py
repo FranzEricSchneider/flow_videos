@@ -141,7 +141,7 @@ def main(
         metadata=previous, data_dir=data_dir, split_key=split_key, state_key=state_key
     )
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     # Initialize model and training components
     device = torch.device(device)
@@ -202,7 +202,10 @@ def main(
 
     # Load best model for final evaluation
     model.load_state_dict(torch.load(out_dir / "best_model.pt"))
-    train_eval = evaluate(model, train_loader, device, "Train")
+    sorted_train_loader = DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=False
+    )
+    train_eval = evaluate(model, sorted_train_loader, device, "Train")
     test_eval = evaluate(model, test_loader, device, "Test")
 
     # Save results
@@ -211,6 +214,8 @@ def main(
         metadata["y_pred_train"] = train_eval[1].tolist()
         metadata["y_test"] = test_eval[0].tolist()
         metadata["y_pred_test"] = test_eval[1].tolist()
+        metadata["train_image_paths"] = train_dataset.image_paths
+        metadata["test_image_paths"] = test_dataset.image_paths
 
     # Save metrics
     metadata["R2_train"] = float(r2_score(*train_eval))
@@ -301,9 +306,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     assert args.data_dir.is_dir()
-    assert args.save_dir.is_dir()
-    previous_meta = data_dir.joinpath("metadata.json")
+    previous_meta = args.data_dir.joinpath("metadata.json")
     assert previous_meta.is_file()
+    if not args.save_dir.is_dir():
+        args.save_dir.mkdir(parents=True)
 
     # Set device
     device = "cuda" if torch.cuda.is_available() else "cpu"

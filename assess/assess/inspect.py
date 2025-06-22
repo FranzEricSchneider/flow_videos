@@ -16,17 +16,16 @@ import shutil
 from assess.train_classic.allocate import train_test
 
 
-def extract_state(meta_im, all_y, all_pred, vidfilter):
+def extract_state(meta_im, all_y, all_pred, all_paths, vidfilter):
 
-    # Grab only the images for the video we care about
-    all_im = sum(train_test(meta_im), start=[])
-    impaths = [im for im in all_im if vidfilter in meta_im[im]["origin"]]
+    # Filter for images matching the vidfilter
+    impaths, y, pred = [], [], []
+    for i, im in enumerate(all_paths):
+        if vidfilter in meta_im[im]["origin"]:
+            impaths.append(im)
+            y.append(all_y[i])
+            pred.append(all_pred[i])
     assert len(impaths) > 0
-
-    # Grab the y (label) and pred (predicted) values as well
-    y = numpy.array([all_y[all_im.index(im)] for im in impaths])
-    pred = numpy.array([all_pred[all_im.index(im)] for im in impaths])
-
     # Sort everything according to the original frame order
     ordered = sorted(zip(impaths, y, pred), key=lambda x: meta_im[x[0]]["origin"])
 
@@ -66,19 +65,21 @@ def animate_flow(impaths, y, pred, goal, key, save):
     axes[2].axis("off")
 
     # Plot the constants
-    axes[0].plot(y, "k--")
-    axes[1].plot([0, len(y)], [goal] * 2, "k--")
+    axes[0].plot(y, "k--", label=f"Per-frame label for {key}")
+    axes[1].plot([0, len(y)], [goal] * 2, "k--", label=f"{key} passed over full video")
 
-    axes[0].set_ylim((min(pred), max(pred)))
-    axes[1].set_ylim((0, sum(pred)))
+    axes[0].set_ylim((min(min(pred), min(y)) * 0.9, max(max(pred), max(y)) * 1.1))
+    axes[1].set_ylim((0, max(sum(pred), goal) * 1.1))
 
     # Set up the labels
     axes[0].set_ylabel(key)
     axes[0].set_xlabel("Frames")
-    axes[0].set_title("Frame by frame comparison to label")
+    axes[0].set_title("Frame by frame inference against label")
     axes[1].set_ylabel("Total " + key)
     axes[1].set_xlabel("Frames")
-    axes[1].set_title("Cumulative state towards the total goal")
+    axes[1].set_title("Cumulative state towards total")
+    axes[0].legend(loc="lower right")
+    axes[1].legend(loc="lower right")
     figure.tight_layout()
 
     def init():
@@ -100,7 +101,7 @@ def animate_flow(impaths, y, pred, goal, key, save):
         init_func=init,
         blit=True,
     )
-    ani.save(save / "animation.mp4", writer="ffmpeg", fps=3)
+    ani.save(save / "animation.mp4", writer="ffmpeg", fps=4)
 
 
 def main(meta1, meta2, trial, vid, key, animate, save):
@@ -110,6 +111,7 @@ def main(meta1, meta2, trial, vid, key, animate, save):
         meta_im=meta1["images"],
         all_y=numpy.hstack([meta2["y_train"], meta2["y_test"]]),
         all_pred=numpy.hstack([meta2["y_pred_train"], meta2["y_pred_test"]]),
+        all_paths=meta2["train_image_paths"] + meta2["test_image_paths"],
         vidfilter=str(Path(trial) / vid),
     )
 
@@ -143,19 +145,13 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--data-dir",
-        help="Path to train data with metadata.json.",
+        help="Path to classical training results with metadata.json.",
         type=Path,
         required=True,
     )
     parser.add_argument(
         "--save-dir",
-        help="Directory in which to save the graphs.",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--imdir",
-        help="Directory in the video trials are stored.",
+        help="Directory in which to save the graphs (WILL BE WIPED).",
         type=Path,
         required=True,
     )
@@ -182,7 +178,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     assert args.data_dir.is_dir()
-    assert args.imdir.is_dir()
 
     # Delete the save directory if it exists
     if args.save_dir.is_dir():

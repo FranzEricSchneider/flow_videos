@@ -86,6 +86,8 @@ def main(
         metadata["X_test"] = X_test.tolist()
         metadata["y_test"] = y_test.tolist()
         metadata["y_pred_test"] = y_pred_test.tolist()
+        metadata["train_image_paths"] = train
+        metadata["test_image_paths"] = test
 
     # Save a few stats
     for kX, ky, kyp, key in [

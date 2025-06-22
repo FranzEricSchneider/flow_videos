@@ -16,18 +16,18 @@ from assess.train_cnn.dataset import ImageRegressionDataset, get_train_test_data
 
 def load_model_from_dir(model_dir: Path, device: torch.device) -> torch.nn.Module:
     """Load a trained model from a directory containing model weights and metadata.
-    
+
     Args:
         model_dir: Directory containing best_model.pt and metadata.json
         device: Device to load model on
-        
+
     Returns:
         Loaded model
     """
     # Load metadata to get model key
     metadata = json.load((model_dir / "metadata.json").open("r"))
     model_key = metadata["kwargs"]["model_key"]
-    
+
     # Load model
     model = MODELS[model_key]().to(device)
     model.load_state_dict(torch.load(model_dir / "best_model.pt"))
@@ -41,23 +41,23 @@ def evaluate_model(
     device: torch.device,
 ) -> numpy.ndarray:
     """Run inference on a dataset.
-    
+
     Args:
         model: Trained model
         dataloader: DataLoader containing images
         device: Device to run inference on
-        
+
     Returns:
         Array of predictions
     """
     all_preds = []
-    
+
     with torch.no_grad():
         for images, _ in tqdm(dataloader, desc="Evaluating"):
             images = images.to(device)
             outputs = model(images)
             all_preds.extend(outputs.cpu().numpy())
-            
+
     return numpy.array(all_preds)
 
 
@@ -67,17 +67,17 @@ def evaluate_ensemble(
     device: torch.device,
 ) -> numpy.ndarray:
     """Run inference using an ensemble of models.
-    
+
     Args:
         models: List of trained models
         dataloader: DataLoader containing images
         device: Device to run inference on
-        
+
     Returns:
         Array of ensemble predictions
     """
     all_preds = []
-    
+
     with torch.no_grad():
         for images, _ in tqdm(dataloader, desc="Evaluating ensemble"):
             images = images.to(device)
@@ -89,7 +89,7 @@ def evaluate_ensemble(
             # Average predictions
             ensemble_preds = numpy.mean(model_preds, axis=0)
             all_preds.extend(ensemble_preds)
-            
+
     return numpy.array(all_preds)
 
 
@@ -97,11 +97,11 @@ def calculate_metrics(
     labels: numpy.ndarray, predictions: numpy.ndarray
 ) -> Dict[str, float]:
     """Calculate regression metrics.
-    
+
     Args:
         labels: True labels
         predictions: Model predictions
-        
+
     Returns:
         Dictionary of metrics
     """
@@ -119,13 +119,13 @@ def evaluate_labeled_data(
     batch_size: int,
 ) -> Dict[str, Any]:
     """Evaluate models on labeled data.
-    
+
     Args:
         models: List of trained models
         data_dir: Directory containing metadata.json and images
         device: Device to run evaluation on
         batch_size: Batch size for evaluation
-        
+
     Returns:
         Dictionary of results
     """
@@ -137,39 +137,34 @@ def evaluate_labeled_data(
         split_key="even",
         state_key="mass (g)",
     )
-    
+
     # Create dataloaders
-    train_loader = DataLoader(train_dataset, batch_size=batch_size)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size)
-    
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
     # Get predictions
-    train_preds = evaluate_ensemble(models, train_loader, device)
-    test_preds = evaluate_ensemble(models, test_loader, device)
-    
+    y_pred_train = evaluate_ensemble(models, train_loader, device)
+    y_pred_test = evaluate_ensemble(models, test_loader, device)
+
     # Get true labels
-    train_labels = train_dataset.labels.numpy()
-    test_labels = test_dataset.labels.numpy()
-    
+    y_train = train_dataset.labels.numpy()
+    y_test = test_dataset.labels.numpy()
+
     # Get image paths
-    train_paths = [
-        str(Path(p).relative_to(data_dir)) for p in train_dataset.image_paths
-    ]
-    test_paths = [
-        str(Path(p).relative_to(data_dir)) for p in test_dataset.image_paths
-    ]
-    
+    train_image_paths = list(train_dataset.image_paths)
+    test_image_paths = list(test_dataset.image_paths)
+
+    # Output in train.py-compatible format
     return {
-        "train": {
-            "predictions": train_preds.tolist(),
-            "labels": train_labels.tolist(),
-            "paths": train_paths,
-            "metrics": calculate_metrics(train_labels, train_preds),
-        },
-        "test": {
-            "predictions": test_preds.tolist(),
-            "labels": test_labels.tolist(),
-            "paths": test_paths,
-            "metrics": calculate_metrics(test_labels, test_preds),
+        "y_train": y_train.tolist(),
+        "y_pred_train": y_pred_train.tolist(),
+        "train_image_paths": train_image_paths,
+        "y_test": y_test.tolist(),
+        "y_pred_test": y_pred_test.tolist(),
+        "test_image_paths": test_image_paths,
+        "metrics": {
+            "train": calculate_metrics(y_train, y_pred_train),
+            "test": calculate_metrics(y_test, y_pred_test),
         },
     }
 
@@ -181,40 +176,40 @@ def evaluate_unlabeled_data(
     batch_size: int,
 ) -> Dict[str, Any]:
     """Evaluate models on unlabeled data.
-    
+
     Args:
         models: List of trained models
         data_dir: Directory containing images
         device: Device to run evaluation on
         batch_size: Batch size for evaluation
-        
+
     Returns:
         Dictionary of results
     """
     # Find images
-    image_files = list(data_dir.glob("*.jpg")) + list(
-        data_dir.glob("*.png")
-    )
+    image_files = list(data_dir.glob("*.jpg")) + list(data_dir.glob("*.png"))
     if not image_files:
         raise ValueError(f"No images found in {data_dir}")
-        
+
     # Create dataset with dummy labels
     dataset = ImageRegressionDataset(
         image_paths=[str(p) for p in image_files],
         labels=numpy.zeros(len(image_files)),
         is_train=False,
     )
-    
+
     # Create dataloader
-    dataloader = DataLoader(dataset, batch_size=batch_size)
-    
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+
     # Get predictions
-    predictions = evaluate_ensemble(models, dataloader, device)
-    
-    # Get relative paths
-    paths = [str(p.relative_to(data_dir)) for p in image_files]
-    
-    return {"predictions": predictions.tolist(), "paths": paths}
+    y_pred_test = evaluate_ensemble(models, dataloader, device)
+
+    # Output in train.py-compatible format (test set only)
+    return {
+        "y_test": [0.0] * len(image_files),  # No ground truth
+        "y_pred_test": y_pred_test.tolist(),
+        "test_image_paths": [str(p) for p in image_files],
+    }
 
 
 def parse_args() -> argparse.Namespace:
@@ -249,24 +244,25 @@ def parse_args() -> argparse.Namespace:
         default="cuda" if torch.cuda.is_available() else "cpu",
         help="Device to run evaluation on",
     )
-    
+
     return parser.parse_args()
 
 
 def main() -> None:
     """Main evaluation function."""
     args = parse_args()
-    
+
     # Create save directory
     args.save_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Load models
     device = torch.device(args.device)
     models = [load_model_from_dir(d, device) for d in args.model_dirs]
-    
+
     # Store arguments and model info in results
     results = {
-        "args": {
+        "kwargs": {
+            "data_dir": str(args.data_dir),
             "model_dirs": [str(d) for d in args.model_dirs],
             "batch_size": args.batch_size,
             "device": args.device,
@@ -274,22 +270,28 @@ def main() -> None:
         "models": [
             {
                 "dir": str(d),
-                "model_key": json.load((d / "metadata.json").open("r"))["kwargs"]["model_key"]
+                "model_key": json.load((d / "metadata.json").open("r"))["kwargs"][
+                    "model_key"
+                ],
             }
             for d in args.model_dirs
-        ]
+        ],
     }
-    
+
     # Evaluate based on data type
     if (args.data_dir / "metadata.json").exists():
-        results.update(evaluate_labeled_data(models, args.data_dir, device, args.batch_size))
+        results.update(
+            evaluate_labeled_data(models, args.data_dir, device, args.batch_size)
+        )
     else:
-        results.update(evaluate_unlabeled_data(models, args.data_dir, device, args.batch_size))
-    
+        results.update(
+            evaluate_unlabeled_data(models, args.data_dir, device, args.batch_size)
+        )
+
     # Save results
     json.dump(
         results,
-        (args.save_dir / "evaluation_results.json").open("w"),
+        (args.save_dir / "metadata.json").open("w"),
         indent=2,
         sort_keys=True,
     )

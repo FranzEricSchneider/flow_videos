@@ -1,20 +1,36 @@
-# flow_videos
+# Mass Estimation from Flow Videos
 Analysis of videos of flow
 
+## Project overview
 
-## Data capture
+The original idea I was investigating with this repository was an internally lit inspection box, where the mass flow of objects passing through a pipe could be calculated using backlit images. At [my previous job](https://www.fyto.us/) we were harvesting waterborne plants by pumping plants and water along a pipe, and it would have been valuable to estimate harvest mass live.
+
+![Idea GIF](.images/idea.gif)
+
+I took data using videos of plants flowing through a backlit tube at different exposure lengths and plant quantities.
+
+TODO: Data GIFs
+
+TODO: Results
+
+See [more details on the process here](https://docs.google.com/presentation/d/1c1pRzYdqQnm1N_qd-dYQaPG8VoMrDPT5KWU83HVyGdI/edit?slide=id.p#slide=id.p).
+
+
+## Using the repository
+
+### Data capture using a LUCID Vision camera
 
 ```
 cd capture/
 ```
 
-### How to build Docker
+#### How to build Docker
 
 ```
 docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t flow .
 ```
 
-### How to run Docker
+#### How to run Docker
 
 ```
 mkdir /tmp/images/
@@ -29,7 +45,7 @@ export DIR=e_"$EXP"/l_95_3/
 mkdir -p ~/Pictures/flowdata/$DIR; docker run -it --rm --net host -u $(id -u):$(id -g) --volume ~/Pictures/flowdata/$DIR:/tmp/images/ flow --exposure $EXP --number-frames 100
 ```
 
-### Installing Arena
+#### Installing Arena
 
 On your computer, follow these steps
 * Follow the Arena SDK for Linux steps here: https://support.thinklucid.com/arena-sdk-documentation/
@@ -51,9 +67,9 @@ On your computer, follow these steps
     * `unzip arena_api...zip; rm arena_api...zip`
 
 
-## Data analysis
+### Data analysis
 
-### Data preparation
+#### Data preparation
 
 The first step is to take the video data (series of images) and turn them into clipped and processed windows, with stats calculated for each window. We want to calculate the stats once, then we can try to fit various stats against our state of interest in the training step. Example run of the preparation tool:
 
@@ -80,7 +96,7 @@ The output will take the form
             }
 ```
 
-### Training
+#### Training
 
 TODO: We should be able to pass hyperparameters into the regressors
 
@@ -118,7 +134,7 @@ The output will take the form
             }
 ```
 
-### Assessment
+#### Assessment
 
 ```
 ~/flow_videos$ python3 -m assess.assess.compare --data-dir /path/to/train/data/ --stats <stat> --plot-ranking --plot-vs-variable meta.kwargs.stat

@@ -286,8 +286,10 @@ def histogram(gray: numpy.ndarray, N=10) -> numpy.ndarray:
 def main(
     metadata: dict,
     data_dir: str,
+    data_name: str,
     start_stop: dict,
     lookup_dict: dict,
+    window_file: str,
     windows: list,
     downsample: int,
     train_frac: float,
@@ -390,7 +392,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--save-dir",
-        help="Directory in which to save the output clipped images.",
+        help="Parent directory in which to save the output clipped images."
+        " A subdirectory for this specific run will be automatically made.",
         type=Path,
         required=True,
     )

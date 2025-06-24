@@ -1,5 +1,6 @@
 # Mass Estimation from Flow Videos
-Analysis of videos of flow
+
+Analysis of videos of flowing material.
 
 ## Project overview
 
@@ -7,9 +8,9 @@ The original idea I was investigating with this repository was an internally lit
 
 ![Idea GIF](.images/idea.gif)
 
-I took data using videos of plants flowing through a backlit tube at different exposure lengths and plant quantities.
+I took data using videos of plants flowing through a backlit tube at different exposure lengths and plant quantities. For example, here was a sample of 156 grams of plant material, and an exposure of 1ms.
 
-TODO: Data GIFs
+![Data GIF](.images/data.gif)
 
 TODO: Results
 
@@ -96,11 +97,9 @@ The output will take the form
             }
 ```
 
-#### Training
+#### Classical model training
 
-TODO: We should be able to pass hyperparameters into the regressors
-
-The next step is to train various basic regressors against the image stats calculated in data preparation. The models will be saved and can be assessed next. Example run of the training tool:
+The next step is to train various basic regressors against the image stats calculated in data preparation. The models will be saved and can be assessed later. Example run of the training tool:
 
 ```
 ~/flow_videos$ python3 -m assess.train_classic.train --data-dir path/to/data_<timestamp>/ --save-dir /tmp/ --stat <chosen stat> --state-key <state key> --model <model>
@@ -131,6 +130,29 @@ The output will take the form
                 "name": amalgamate trial name,
                 "R2_*", "RMSE_*", "MAE_*": training stats for model
                 "X_*", "y_*", "y_pred_*": raw data and labels for model
+            }
+```
+
+#### CNN model training
+
+The next step is to train various CNN based regressors against the snipped image windows. The models will be saved and can be assessed later. Example run of the training tool:
+
+```
+~/flow_videos$ python3 -m assess.train_cnn.train --data-dir path/to/data_<timestamp>/ --save-dir /tmp/ --state-key <state key> --model mobilenet_v3_small --batch-size 32 --num-epochs 20 --learning-rate 0.001
+```
+
+The output will take the form
+
+```
+/tmp/
+    data_<input timestamp>_<created timestamp>/
+        best_model.pt
+        metadata.json
+            {
+                "kwargs": kwargs,
+                "name": amalgamate trial name,
+                "R2_*", "RMSE_*", "MAE_*": training stats for model
+                "y_*", "y_pred_*": predictions and labels
             }
 ```
 

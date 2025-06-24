@@ -119,7 +119,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--save-dir",
-        help="Directory in which to save the output model and metadata.",
+        help="Parent directory in which to save the output model and metadata."
+        " A subdirectory for this specific run will be automatically made.",
         type=Path,
         required=True,
     )

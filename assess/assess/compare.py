@@ -12,13 +12,25 @@ import time
 from tqdm import tqdm
 
 
-def plot_ranking(metadatas: list, origins: dict, stats: str, N: int = 30):
+def plot_ranking(metadatas: list, origins: dict, stats: list, N: int = 30):
+
+    highest_best = {
+        "R2": True,
+        "RMSE": False,
+        "MAE": False,
+    }
 
     order = sorted(
         range(len(metadatas)),
         key=lambda x: metadatas[x][f"{stats[0]}_test"],
-        reverse=True,
+        reverse=highest_best[stats[0]],
     )
+
+    # Take a subset of the tests - just the top and bottom slices
+    if len(order) <= 2 * N:
+        subset = order
+    else:
+        subset = order[:N] + order[-N:]
 
     for key in ["train", "test"]:
 
@@ -34,9 +46,9 @@ def plot_ranking(metadatas: list, origins: dict, stats: str, N: int = 30):
 
             x = [
                 f"{origins[metadatas[i]['kwargs']['data_dir']]['name']}\n{metadatas[i]['name']}"
-                for i in order[:N] + order[-N:]
+                for i in subset
             ]
-            y = [metadatas[i][f"{stat}_{key}"] for i in order[:N] + order[-N:]]
+            y = [metadatas[i][f"{stat}_{key}"] for i in subset]
 
             axis.bar(x, y)
             if stat == stats[-1]:

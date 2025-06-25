@@ -58,7 +58,7 @@ def cumulative(axis, y, ylabel, goal):
 def animate_flow(impaths, y, pred, goal, key, save):
 
     # Make the figure and placeholders for all the lines
-    figure, axes = pyplot.subplots(3, 1, figsize=(10, 8))
+    figure, axes = pyplot.subplots(3, 1, figsize=(6, 5))
     (line0,) = axes[0].plot([], [], "o-")
     (line1,) = axes[1].plot([], [])
     image = axes[2].imshow(numpy.zeros_like(numpy.asarray(Image.open(impaths[0]))))
@@ -101,7 +101,7 @@ def animate_flow(impaths, y, pred, goal, key, save):
         init_func=init,
         blit=True,
     )
-    ani.save(save / "animation.mp4", writer="ffmpeg", fps=4)
+    ani.save(save / "animation.gif", writer=animation.PillowWriter(fps=4))
 
 
 def main(meta1, meta2, trial, vid, key, animate, save):

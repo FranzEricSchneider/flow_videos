@@ -1,7 +1,5 @@
 # Mass Estimation from Flow Videos
 
-Analysis of videos of flowing material.
-
 ## Project overview
 
 ### Idea

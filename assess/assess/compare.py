@@ -51,6 +51,14 @@ def plot_ranking(metadatas: list, origins: dict, stats: list, N: int = 30):
             y = [metadatas[i][f"{stat}_{key}"] for i in subset]
 
             axis.bar(x, y)
+            axis.grid(True)
+
+            # Set y-limits from below min to above max
+            y_min = min(y)
+            y_max = max(y)
+            y_range = y_max - y_min
+            axis.set_ylim(y_min - 0.1 * y_range, y_max + 0.1 * y_range)
+
             if stat == stats[-1]:
                 axis.tick_params(axis="x", labelrotation=90, labelsize=6)
             else:

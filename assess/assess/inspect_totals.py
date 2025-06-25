@@ -85,7 +85,9 @@ def main():
             float(pred) - float(state) for pred, state in zip(pred_sum_list, state_list)
         ]
         rmse = np.sqrt(np.mean(np.square(error)))
-        plt.scatter(state_list, pred_sum_list, label=f"{name} (RMSE={rmse:.2f})")
+        plt.scatter(
+            state_list, pred_sum_list, label=f"{name}, RMSE={rmse:.1f}", marker="x"
+        )
         if max(state_list) > max_state:
             max_state = max(state_list)
 

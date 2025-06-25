@@ -106,9 +106,9 @@ def calculate_metrics(
         Dictionary of metrics
     """
     return {
-        "r2": float(r2_score(labels, predictions)),
-        "rmse": float(numpy.sqrt(mean_squared_error(labels, predictions))),
-        "mae": float(mean_absolute_error(labels, predictions)),
+        "R2": float(r2_score(labels, predictions)),
+        "RMSE": float(numpy.sqrt(mean_squared_error(labels, predictions))),
+        "MAE": float(mean_absolute_error(labels, predictions)),
     }
 
 
@@ -154,6 +154,9 @@ def evaluate_labeled_data(
     train_image_paths = list(train_dataset.image_paths)
     test_image_paths = list(test_dataset.image_paths)
 
+    train_metrics = calculate_metrics(y_train, y_pred_train)
+    test_metrics = calculate_metrics(y_test, y_pred_test)
+
     # Output in train.py-compatible format
     return {
         "y_train": y_train.tolist(),
@@ -162,10 +165,12 @@ def evaluate_labeled_data(
         "y_test": y_test.tolist(),
         "y_pred_test": y_pred_test.tolist(),
         "test_image_paths": test_image_paths,
-        "metrics": {
-            "train": calculate_metrics(y_train, y_pred_train),
-            "test": calculate_metrics(y_test, y_pred_test),
-        },
+        "R2_train": train_metrics["R2"],
+        "RMSE_train": train_metrics["RMSE"],
+        "MAE_train": train_metrics["MAE"],
+        "R2_test": test_metrics["R2"],
+        "RMSE_test": test_metrics["RMSE"],
+        "MAE_test": test_metrics["MAE"],
     }
 
 
@@ -223,7 +228,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "save_dir",
         type=Path,
-        help="Directory to save results",
+        help="Directory to save results, this should not exist and will be"
+        " created as part of running this script.",
     )
     parser.add_argument(
         "--model-dirs",
@@ -231,6 +237,11 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         required=True,
         help="Directories containing best_model.pt and metadata.json",
+    )
+    parser.add_argument(
+        "--name",
+        required=True,
+        help="Human readable name for the ensemble model",
     )
     parser.add_argument(
         "--batch-size",
@@ -267,6 +278,7 @@ def main() -> None:
             "batch_size": args.batch_size,
             "device": args.device,
         },
+        "name": args.name,
         "models": [
             {
                 "dir": str(d),

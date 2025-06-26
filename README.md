@@ -4,7 +4,7 @@
 
 ### Idea
 
-The original idea I was investigating with this repository was an internally lit inspection box, where the mass flow of objects passing through a pipe could be calculated using backlit video. At [my previous job](https://www.fyto.us/) we were harvesting waterborne plants by pumping plants and water along a pipe, and it would have been valuable to get a real-time estimate of harvested biomass. Eventually these videos could also support additional analyses, such as assessing plant health, detecting debris or pests, and monitoring water quality. This project tests the hypothesis that a backlit video could be used to estimate biomass flow with reasonable accuracy.
+The original idea I was investigating with this repository was an internally lit inspection box, where the mass flow of objects passing through a pipe could be calculated using backlit video. At [my previous job](https://franzericschneider.github.io/pages/fyto.html) we were harvesting waterborne plants by pumping plants and water along a pipe, and it would have been valuable to get a real-time estimate of harvested biomass. Eventually these videos could also support additional analyses, such as assessing plant health, detecting debris or pests, and monitoring water quality. This project tests the hypothesis that a backlit video could be used to estimate biomass flow with reasonable accuracy.
 
 ![Idea GIF](.images/idea.gif)
 
@@ -30,12 +30,12 @@ The best results came from an ensemble of CNNs. As a sanity check, I compared th
 
 The best ensemble model performed better than best standalone model, having a higher coefficient of determination (R²) and lower error (RMSE, MAE).
 
-| Metric           | Best Standalone Model  | Best Ensemble              | Improvement (%) |
-|------------------|------------------------|----------------------------|-----------------|
-|                  | EfficientNet           | EfficientNet / MobileNet   |                 |
-| R²               | 0.906                  | 0.916                      | +1.1%           |
-| RMSE (g/frame)   | 0.173                  | 0.164                      | -5.2%           |
-| MAE (g/frame)    | 0.123                  | 0.115                      | -6.5%           |
+| Metric (Test Set) | Best Standalone Model  | Best Ensemble              | Improvement (%) |
+|-------------------|------------------------|----------------------------|-----------------|
+|                   | EfficientNet           | EfficientNet / MobileNet   |                 |
+| R²                | 0.906                  | 0.916                      | +1.1%           |
+| RMSE (g/frame)    | 0.173                  | 0.164                      | -5.2%           |
+| MAE (g/frame)     | 0.123                  | 0.115                      | -6.5%           |
 
 Here's an example visualization of inference from the EfficientNet / MobileNet ensemble model on a video (204g of plant material, 1 ms exposure).
 

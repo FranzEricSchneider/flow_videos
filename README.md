@@ -24,7 +24,7 @@ To predict mass from frame images, I tried two main approaches:
 2. CNN-based regressors
     * Backbones tested: EfficientNet B0, MobileNet V3 Small, ResNet18, ConvNeXt Tiny
 
-The best results came from an ensemble of CNNs. As a sanity check, I compared the integrated per-frame predictions to ground truth total mass per video — the ensemble tracked actual mass flow closely and consistently outperformed the SVR, though both performed reasonably well.
+These were trained against per-frame pseudo mass labels. I don't actually know how much mass is visible in a given frame, but I know that over a whole video a certain mass passed by. Frames were then assigned a pseudolabel of `total mass / frames in the video`. The best results came from an ensemble of CNNs. As a sanity check, I compared the integrated per-frame predictions to ground truth total mass per video — the ensemble tracked actual mass flow closely and consistently outperformed the SVR, though both performed reasonably well.
 
 ![Results](.images/totals.png)
 
